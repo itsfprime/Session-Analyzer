@@ -119,13 +119,17 @@ public class GUIBuilder {
         chart.getPlot().setBackgroundPaint(bg);
         chart.getPlot().setOutlinePaint(Color.GRAY);
 
-        if(chart.getPlot() instanceof XYPlot plot){
+        if (chart.getPlot() instanceof XYPlot plot) {
+            plot.getDomainAxis().setLabelPaint(Color.LIGHT_GRAY);
+            plot.getDomainAxis().setTickLabelPaint(Color.LIGHT_GRAY);
+            plot.getRangeAxis().setLabelPaint(Color.LIGHT_GRAY);
+            plot.getRangeAxis().setTickLabelPaint(Color.LIGHT_GRAY);
             plot.setDomainGridlinePaint(Color.GRAY);
             plot.setRangeGridlinePaint(Color.GRAY);
         }
 
         chart.getLegend().setBackgroundPaint(bg);
-        chart.getLegend().setItemPaint(Color.LIGHT_GRAY);
+        chart.getLegend().setItemPaint(Color.WHITE);
         chart.getTitle().setPaint(Color.WHITE);
     }
 
