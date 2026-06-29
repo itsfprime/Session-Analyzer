@@ -31,6 +31,8 @@ public class Main {
         double skewnessCoefficient =            Calculator.calculateSkewnessCoefficient(sessionMean, sessionMedian, standardDeviation);
         int outliers =                          Calculator.countOutliers(solves, sessionMean, standardDeviation);
         int dnfCount =                          Parser.getDnfCount();
+        int test =                              0;
+        for( ; test < 10; test++) System.out.println(test);
 
         double negativeTwoZScoreValue = sessionMean - (2 * standardDeviation);
         double positiveTwoZScoreValue = sessionMean + (2 * standardDeviation);
