@@ -8,7 +8,9 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 public class GUIBuilder {
     double[] solves;
@@ -18,6 +20,7 @@ public class GUIBuilder {
     String report;
     String[] stats;
     private final Dimension PANEL_SIZE = new Dimension(800, 400);
+    private JFrame frame;
 
     public GUIBuilder(double[] solves, double[] averages, double[] averagesOf100, double sessionMean, String report, String[] stats){
         this.solves = solves;
@@ -42,17 +45,29 @@ public class GUIBuilder {
         contentPanel.add(buildStatsPanel());
         contentPanel.add(solvePanel);
         contentPanel.add(ao100Panel);
+        contentPanel.add(createResetButton());
 
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-        JFrame frame = new JFrame("Session Analyzer");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.add(scrollPane);
-        frame.setSize(900, 800);
+        if(frame == null){
+            frame = new JFrame("Session Analyzer");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(900, 800);
+        }
+
+        frame.setContentPane(scrollPane);
+        frame.revalidate();
+        frame.repaint();
         frame.setVisible(true);
+    }
+
+    private JButton createResetButton(){
+        JButton button = new JButton("Reset Graphs");
+        button.addActionListener(e -> buildGUI());
+        return button;
     }
 
     private JFreeChart buildAo100Chart(){
@@ -74,8 +89,10 @@ public class GUIBuilder {
 
     private JPanel buildStatsPanel(){
         JPanel panel = new JPanel(new GridBagLayout());
+
         panel.setBorder(BorderFactory.createTitledBorder("Session Stats"));
         panel.setBackground(Color.DARK_GRAY);
+        panel.setForeground(Color.DARK_GRAY);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 12, 4, 12);
@@ -100,7 +117,7 @@ public class GUIBuilder {
             gbc.gridx = 0; gbc.gridy = i;
             JLabel key = new JLabel(statsReadout[i][0]);
             key.setForeground(Color.LIGHT_GRAY);
-            key.setFont(new Font("Monospaced", Font.PLAIN, 13));
+            key.setFont(new Font("Monospaced", Font.ITALIC, 13));
             panel.add(key, gbc);
 
             gbc.gridx = 1;
@@ -118,7 +135,7 @@ public class GUIBuilder {
         chart.setBackgroundPaint(bg);
         chart.getPlot().setBackgroundPaint(bg);
         chart.getPlot().setOutlinePaint(Color.GRAY);
-
+        
         if (chart.getPlot() instanceof XYPlot plot) {
             plot.getDomainAxis().setLabelPaint(Color.LIGHT_GRAY);
             plot.getDomainAxis().setTickLabelPaint(Color.LIGHT_GRAY);
