@@ -8,9 +8,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class GUIBuilder {
     double[] solves;
@@ -19,16 +17,18 @@ public class GUIBuilder {
     double sessionMean;
     String report;
     String[] stats;
+    int dnfCount;
     private final Dimension PANEL_SIZE = new Dimension(800, 400);
     private JFrame frame;
 
-    public GUIBuilder(double[] solves, double[] averages, double[] averagesOf100, double sessionMean, String report, String[] stats){
+    public GUIBuilder(double[] solves, double[] averages, double[] averagesOf100, double sessionMean, String report, String[] stats, int dnfCount){
         this.solves = solves;
         this.averages = averages;
         this.averagesOf100 = averagesOf100;
         this.sessionMean = sessionMean;
         this.report = report;
         this.stats = stats;
+        this.dnfCount = dnfCount;
     }
 
     public void buildGUI(){
@@ -111,6 +111,7 @@ public class GUIBuilder {
                 {"95% Confidence Interval (Solve)", stats[9]},
                 {"Skewness coefficient", stats[10]},
                 {"Outliers",  stats[11]},
+                {"DNF's", stats[12]}
         };
 
         for (int i = 0; i < statsReadout.length; i++) {
