@@ -1,20 +1,11 @@
-import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.data.statistics.HistogramDataset;
-import org.jfree.data.statistics.HistogramType;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
-
 import javax.swing.*;
 
 public class Main {
-    private static final String FILEPATH = "C:\\Users\\pwcub\\IdeaProjects\\SessionAnalyzer\\src\\session7.csv";
+    private static final String FILEPATH = "src/session7.csv";
     static File file = new File(FILEPATH);
     public static final int BUCKETS = 30;
     static final double ZSCORE = 1.96;
@@ -22,28 +13,9 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
         Scanner fileReader = new Scanner(file);
         fileReader.useDelimiter("\\Z"); // read entire file
-        String content = fileReader.next();
         fileReader.close();
 
-        String[] entries = content.split("(?m)(?=^\\d+;)"); // split before each entry number
-        double[] solves = new double[entries.length];
-
-        for (int i = 0; i < entries.length; i++) {
-            String entry = entries[i];
-            int firstSemi = entry.indexOf(';');
-            int secondSemi = entry.indexOf(';', firstSemi + 1);
-
-            String timeStr = entry.substring(firstSemi + 1, secondSemi);
-            if (timeStr.startsWith("DNF")) {
-                // extract the time inside DNF(x) or skip entirely
-                timeStr = timeStr.substring(4, timeStr.length() - 1); // strips "DNF(" and ")"
-            } else if (timeStr.endsWith("+")) {
-            timeStr = timeStr.substring(0, timeStr.length() - 1);
-            solves[i] = Double.parseDouble(timeStr) + 2;
-            continue; // skip the parseDouble below
-        }
-            solves[i] = Double.parseDouble(timeStr);
-        }
+        double[] solves = Parser.parseSolves(FILEPATH);
 
         Sorter sorter = new Sorter(solves);
 
@@ -58,6 +30,7 @@ public class Main {
         double error =                          Calculator.calculateMOE(standardDeviation, solves);
         double skewnessCoefficient =            Calculator.calculateSkewnessCoefficient(sessionMean, sessionMedian, standardDeviation);
         int outliers =                          Calculator.countOutliers(solves, sessionMean, standardDeviation);
+        int dnfCount =                          Parser.getDnfCount();
 
         double negativeTwoZScoreValue = sessionMean - (2 * standardDeviation);
         double positiveTwoZScoreValue = sessionMean + (2 * standardDeviation);
@@ -81,13 +54,14 @@ public class Main {
         String confIntStrSolve = String.format("95%% Confidence Interval (Solve): %.3fs - %.3fs\n", confidentSolveRange[0], confidentSolveRange[1]);
         String skewnessStr = String.format("Skewness coefficient: %.3f\n", skewnessCoefficient);
         String outlierStr = String.format("Outliers: %d (%.3f%%)\n", outliers, percentOutliers);
-        String[] stats = {meanStr, medianStr, pbStr, sdStr, top5TimeStr, top95TimeStr, meanAo5Str, meanAo100Str, confIntStrMean, confIntStrSolve, skewnessStr, outlierStr};
+        String dnfStr = String.format("DNFs: %d\n", dnfCount);
+        String[] stats = {meanStr, medianStr, pbStr, sdStr, top5TimeStr, top95TimeStr, meanAo5Str, meanAo100Str, confIntStrMean, confIntStrSolve, skewnessStr, outlierStr, dnfStr};
 
-        String report = meanStr + medianStr + pbStr + sdStr + top5TimeStr + top95TimeStr + meanAo5Str + meanAo100Str + confIntStrMean + confIntStrSolve + skewnessStr + outlierStr;
+        String report = meanStr + medianStr + pbStr + sdStr + top5TimeStr + top95TimeStr + meanAo5Str + meanAo100Str + confIntStrMean + confIntStrSolve + skewnessStr + outlierStr + dnfCount;
 
         System.out.println(report);
 
-        GUIBuilder gui = new GUIBuilder(solves, averages, averagesOf100, sessionMean, report, stats);
+        GUIBuilder gui = new GUIBuilder(solves, averages, averagesOf100, sessionMean, report, stats, dnfCount);
         SwingUtilities.invokeLater(gui::buildGUI);
     }
 }
