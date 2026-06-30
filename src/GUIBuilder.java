@@ -1,6 +1,7 @@
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.statistics.HistogramDataset;
 import org.jfree.data.statistics.HistogramType;
@@ -20,6 +21,7 @@ public class GUIBuilder {
     int dnfCount;
     private final Dimension PANEL_SIZE = new Dimension(800, 400);
     private JFrame frame;
+    private double zoomLevel = 1.2;
 
     public GUIBuilder(double[] solves, double[] averages, double[] averagesOf100, double sessionMean, String report, String[] stats, int dnfCount){
         this.solves = solves;
@@ -91,9 +93,14 @@ public class GUIBuilder {
         XYSeriesCollection dataset = new XYSeriesCollection();
         dataset.addSeries(ao100Series);
         dataset.addSeries(meanSeries);
-        return ChartFactory.createXYLineChart(
-                "Ao100 Over Session", "Solve #", "Time(s)", dataset
-        );
+        JFreeChart chart = ChartFactory.createXYLineChart("Ao100 Over Session", "Solve #", "Time(s)", dataset);
+
+        XYPlot plot = chart.getXYPlot();
+        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+        yAxis.setLowerBound(sessionMean / zoomLevel);
+        yAxis.setAutoRangeIncludesZero(false);
+
+        return chart;
     }
 
     private JPanel buildStatsPanel(){
