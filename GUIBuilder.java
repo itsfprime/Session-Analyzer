@@ -45,7 +45,7 @@ public class GUIBuilder {
         contentPanel.add(buildStatsPanel());
         contentPanel.add(solvePanel);
         contentPanel.add(ao100Panel);
-        contentPanel.add(createResetButton());
+        contentPanel.add(createResetButtonPanel());
 
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -64,10 +64,19 @@ public class GUIBuilder {
         frame.setVisible(true);
     }
 
-    private JButton createResetButton(){
+    private JPanel createResetButtonPanel(){
         JButton button = new JButton("Reset Graphs");
+        button.setFont(new Font("Monospaced", Font.BOLD, 13));
+        button.setBackground(Color.DARK_GRAY);
+        button.setForeground(Color.LIGHT_GRAY);
+        button.setFocusPainted(false);
+        button.setContentAreaFilled(false);
+        button.setBorder(BorderFactory.createRaisedSoftBevelBorder());
         button.addActionListener(e -> buildGUI());
-        return button;
+        JPanel panel = new JPanel();
+        panel.add(button);
+        panel.setBackground(Color.DARK_GRAY);
+        return panel;
     }
 
     private JFreeChart buildAo100Chart(){
