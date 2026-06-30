@@ -1,9 +1,7 @@
-import java.awt.*;
 import java.io.File;
-import com.formdev.flatlaf.FlatLightLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
 import java.io.IOException;
 import java.util.Scanner;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -12,18 +10,21 @@ public class Main {
     static final double ZSCORE = 1.96;
 
     public static void main(String[] args) throws IOException {
-        FlatLightLaf.setup();
+        // Initialize styling and find session data
+        FlatDarkLaf.setup();
         String FILEPATH = findFile();
 
+        // Load session data
         File file = new File(FILEPATH);
         Scanner fileReader = new Scanner(file);
         fileReader.useDelimiter("\\Z"); // read entire file
         fileReader.close();
 
+        // Gather and sort solves
         double[] solves = Parser.parseSolves(FILEPATH);
-
         Sorter sorter = new Sorter(solves);
 
+        // Initialize statistics variables
         double sessionMean =                    Calculator.calculateMean(solves);
         double[] sortedSessionData =            sorter.getSorted();
         double sessionMedian =                  Calculator.calculateMedian(sortedSessionData);
@@ -36,17 +37,17 @@ public class Main {
         double skewnessCoefficient =            Calculator.calculateSkewnessCoefficient(sessionMean, sessionMedian, standardDeviation);
         int outliers =                          Calculator.countOutliers(solves, sessionMean, standardDeviation);
         int dnfCount =                          Parser.getDnfCount();
+        double negativeTwoZScoreValue =         sessionMean - (2 * standardDeviation);
+        double positiveTwoZScoreValue =         sessionMean + (2 * standardDeviation);
+        double[] confidentMeanRange =           new double[2];
+        confidentMeanRange[0] =                 sessionMean - error;
+        confidentMeanRange[1] =                 sessionMean + error;
+        double[] confidentSolveRange =          new double[2];
+        confidentSolveRange[0] =                sessionMean - 2 * standardDeviation;
+        confidentSolveRange[1] =                sessionMean + 2 * standardDeviation;
+        double percentOutliers =                ((double) outliers / (double) solves.length) * 100;
 
-        double negativeTwoZScoreValue = sessionMean - (2 * standardDeviation);
-        double positiveTwoZScoreValue = sessionMean + (2 * standardDeviation);
-        double[] confidentMeanRange = new double[2];
-        confidentMeanRange[0] = sessionMean - error;
-        confidentMeanRange[1] = sessionMean + error;
-        double[] confidentSolveRange = new double[2];
-        confidentSolveRange[0] = sessionMean - 2 * standardDeviation;
-        confidentSolveRange[1] = sessionMean + 2 * standardDeviation;
-        double percentOutliers = ((double) outliers / (double) solves.length) * 100;
-
+        // String formatted statistics
         String meanStr = String.format("Session Mean: %.3fs\n", sessionMean);
         String medianStr = String.format("Session Median: %.3fs\n", sessionMedian);
         String pbStr = String.format("Best solve: %.3fs\n", sortedSessionData[0]);
@@ -63,7 +64,6 @@ public class Main {
         String[] stats = {meanStr, medianStr, pbStr, sdStr, top5TimeStr, top95TimeStr, meanAo5Str, meanAo100Str, confIntStrMean, confIntStrSolve, skewnessStr, outlierStr, dnfStr};
 
         String report = meanStr + medianStr + pbStr + sdStr + top5TimeStr + top95TimeStr + meanAo5Str + meanAo100Str + confIntStrMean + confIntStrSolve + skewnessStr + outlierStr + dnfStr;
-
         System.out.println(report);
 
         GUIBuilder gui = new GUIBuilder(solves, averages, averagesOf100, sessionMean, report, stats, dnfCount);
@@ -72,6 +72,8 @@ public class Main {
 
     private static String findFile() throws IOException {
         File file = new File("src/data.txt");
+
+        // Console output for file verification
         if (file.createNewFile()) {
             System.out.println("data.txt not found, created");
         } else {
@@ -90,7 +92,6 @@ public class Main {
         chooser.setDialogTitle("Select your session.csv file");
         chooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
         chooser.setApproveButtonText("Load Session");
-        chooser.setBackground(new Color(144, 144, 144, 75));
         int result = chooser.showOpenDialog(null);
         if (result != JFileChooser.APPROVE_OPTION) {
             throw new IOException("No file selected");
