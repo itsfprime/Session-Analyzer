@@ -12,6 +12,11 @@ public class Parser {
         fileReader.useDelimiter("\\Z");
         String content = fileReader.next();
         fileReader.close();
+        Scanner reader = new Scanner(content);
+        String line = reader.nextLine();
+        if (line.equalsIgnoreCase("No.;Time;Comment;Scramble;Date;P.1")) {
+            content = content.substring(line.length()).replaceFirst("^\\R", "");
+        }
 
         String[] entries = content.split("(?m)(?=^\\d+;)");
         List<Double> solves = new ArrayList<>();
