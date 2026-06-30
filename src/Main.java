@@ -1,16 +1,21 @@
+import java.awt.*;
 import java.io.File;
-import java.io.FileNotFoundException;
+import com.formdev.flatlaf.FlatLightLaf;
+import java.io.IOException;
 import java.util.Scanner;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class Main {
-    private static final String FILEPATH = "src/session.csv";
-    static File file = new File(FILEPATH);
     public static final int BUCKETS = 30;
     static final double ZSCORE = 1.96;
 
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws IOException {
+        FlatLightLaf.setup();
+        String FILEPATH = findFile();
+
+        File file = new File(FILEPATH);
         Scanner fileReader = new Scanner(file);
         fileReader.useDelimiter("\\Z"); // read entire file
         fileReader.close();
@@ -63,5 +68,40 @@ public class Main {
 
         GUIBuilder gui = new GUIBuilder(solves, averages, averagesOf100, sessionMean, report, stats, dnfCount);
         SwingUtilities.invokeLater(gui::buildGUI);
+    }
+
+    private static String findFile() throws IOException {
+        File file = new File("src/data.txt");
+        if (file.createNewFile()) {
+            System.out.println("data.txt not found, created");
+        } else {
+            System.out.println("data.txt found");
+        }
+
+        Scanner reader = new Scanner(file);
+        String path = reader.hasNextLine() ? reader.nextLine().trim() : "";
+        reader.close();
+
+        if (!path.isEmpty() && new File(path).exists()) {
+            return path;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Select your session.csv file");
+        chooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+        chooser.setApproveButtonText("Load Session");
+        chooser.setBackground(new Color(144, 144, 144, 75));
+        int result = chooser.showOpenDialog(null);
+        if (result != JFileChooser.APPROVE_OPTION) {
+            throw new IOException("No file selected");
+        }
+
+        String selectedPath = chooser.getSelectedFile().getAbsolutePath();
+
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(file)) {
+            writer.println(selectedPath);
+        }
+
+        return selectedPath;
     }
 }
