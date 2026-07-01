@@ -10,6 +10,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class GUIBuilder {
     double[] solves;
@@ -21,16 +22,19 @@ public class GUIBuilder {
     int dnfCount;
     private final Dimension PANEL_SIZE = new Dimension(800, 400);
     private JFrame frame;
-    private double zoomLevel = 1.2;
 
-    public GUIBuilder(double[] solves, double[] averages, double[] averagesOf100, double sessionMean, String report, String[] stats, int dnfCount){
-        this.solves = solves;
-        this.averages = averages;
-        this.averagesOf100 = averagesOf100;
-        this.sessionMean = sessionMean;
-        this.report = report;
-        this.stats = stats;
-        this.dnfCount = dnfCount;
+    public GUIBuilder(SessionData data){
+        applyData(data);
+    }
+
+    private void applyData(SessionData data){
+        this.solves = data.solves();
+        this.averages = data.averages();
+        this.averagesOf100 = data.averagesOf100();
+        this.sessionMean = data.sessionMean();
+        this.report = data.report();
+        this.stats = data.stats();
+        this.dnfCount = data.dnfCount();
     }
 
     public void buildGUI(){
@@ -67,16 +71,42 @@ public class GUIBuilder {
     }
 
     private JPanel createResetButtonPanel(){
-        JButton button = new JButton("Reset Graphs");
-        button.setFont(new Font("Monospaced", Font.BOLD, 13));
-        button.setBackground(Color.DARK_GRAY);
-        button.setForeground(Color.LIGHT_GRAY);
-        button.setFocusPainted(false);
-        button.setContentAreaFilled(false);
-        button.setBorder(BorderFactory.createRaisedSoftBevelBorder());
-        button.addActionListener(e -> buildGUI());
+        JButton resetGraphsBtn = new JButton("Reset Graphs");
+        JButton newSessionBtn = new JButton("New Session");
+
+        resetGraphsBtn.setFont(new Font("Monospaced", Font.BOLD, 13));
+        resetGraphsBtn.setBackground(Color.DARK_GRAY);
+        resetGraphsBtn.setForeground(Color.LIGHT_GRAY);
+        resetGraphsBtn.setFocusPainted(false);
+        resetGraphsBtn.setContentAreaFilled(false);
+        resetGraphsBtn.setBorder(BorderFactory.createRaisedSoftBevelBorder());
+
+        newSessionBtn.setFont(new Font("Monospaced", Font.BOLD, 13));
+        newSessionBtn.setBackground(Color.DARK_GRAY);
+        newSessionBtn.setForeground(Color.LIGHT_GRAY);
+        newSessionBtn.setFocusPainted(false);
+        newSessionBtn.setContentAreaFilled(false);
+        newSessionBtn.setBorder(BorderFactory.createRaisedSoftBevelBorder());
+
+        resetGraphsBtn.addActionListener(_ -> buildGUI());
+
+        newSessionBtn.addActionListener(_ -> {
+            try {
+                String newPath = Main.selectNewFile();
+                if (newPath == null) return; // user cancelled
+                SessionData data = Main.computeStats(newPath);
+                applyData(data);
+                buildGUI();
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(frame,
+                        "Failed to load new session: " + ex.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
         JPanel panel = new JPanel();
-        panel.add(button);
+        panel.add(resetGraphsBtn);
+        panel.add(newSessionBtn);
         panel.setBackground(Color.DARK_GRAY);
         return panel;
     }
@@ -97,6 +127,7 @@ public class GUIBuilder {
 
         XYPlot plot = chart.getXYPlot();
         NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+        double zoomLevel = 1.2;
         yAxis.setLowerBound(sessionMean / zoomLevel);
         yAxis.setAutoRangeIncludesZero(false);
 

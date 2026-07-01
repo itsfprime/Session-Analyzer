@@ -10,44 +10,40 @@ public class Main {
     static final double ZSCORE = 1.96;
 
     public static void main(String[] args) throws IOException {
-        // Initialize styling and find session data
         FlatDarkLaf.setup();
-        String FILEPATH = findFile();
+        String filepath = findFile();
+        SessionData data = computeStats(filepath);
+        GUIBuilder gui = new GUIBuilder(data);
+        SwingUtilities.invokeLater(gui::buildGUI);
+    }
 
-        // Load session data
-        File file = new File(FILEPATH);
+    public static SessionData computeStats(String filepath) throws IOException {
+        File file = new File(filepath);
         Scanner fileReader = new Scanner(file);
-        fileReader.useDelimiter("\\Z"); // read entire file
+        fileReader.useDelimiter("\\Z");
         fileReader.close();
 
-        // Gather and sort solves
-        double[] solves = Parser.parseSolves(FILEPATH);
+        double[] solves = Parser.parseSolves(filepath);
         Sorter sorter = new Sorter(solves);
 
-        // Initialize statistics variables
-        double sessionMean =                    Calculator.calculateMean(solves);
-        double[] sortedSessionData =            sorter.getSorted();
-        double sessionMedian =                  Calculator.calculateMedian(sortedSessionData);
-        double standardDeviation =              Calculator.calculateStandardDeviation(solves);
-        double[] averages =                     Calculator.calculateAo5s(solves);
-        double meanOfAverages =                 Calculator.calculateMean(averages);
-        double[] averagesOf100 =                Calculator.calculateRollingAverage(solves, 100);
-        double meanOfAo100 =                    Calculator.calculateMean(averagesOf100);
-        double error =                          Calculator.calculateMOE(standardDeviation, solves);
-        double skewnessCoefficient =            Calculator.calculateSkewnessCoefficient(sessionMean, sessionMedian, standardDeviation);
-        int outliers =                          Calculator.countOutliers(solves, sessionMean, standardDeviation);
-        int dnfCount =                          Parser.getDnfCount();
-        double negativeTwoZScoreValue =         sessionMean - (2 * standardDeviation);
-        double positiveTwoZScoreValue =         sessionMean + (2 * standardDeviation);
-        double[] confidentMeanRange =           new double[2];
-        confidentMeanRange[0] =                 sessionMean - error;
-        confidentMeanRange[1] =                 sessionMean + error;
-        double[] confidentSolveRange =          new double[2];
-        confidentSolveRange[0] =                sessionMean - 2 * standardDeviation;
-        confidentSolveRange[1] =                sessionMean + 2 * standardDeviation;
-        double percentOutliers =                ((double) outliers / (double) solves.length) * 100;
+        double sessionMean = Calculator.calculateMean(solves);
+        double[] sortedSessionData = sorter.getSorted();
+        double sessionMedian = Calculator.calculateMedian(sortedSessionData);
+        double standardDeviation = Calculator.calculateStandardDeviation(solves);
+        double[] averages = Calculator.calculateAo5s(solves);
+        double meanOfAverages = Calculator.calculateMean(averages);
+        double[] averagesOf100 = Calculator.calculateRollingAverage(solves, 100);
+        double meanOfAo100 = Calculator.calculateMean(averagesOf100);
+        double error = Calculator.calculateMOE(standardDeviation, solves);
+        double skewnessCoefficient = Calculator.calculateSkewnessCoefficient(sessionMean, sessionMedian, standardDeviation);
+        int outliers = Calculator.countOutliers(solves, sessionMean, standardDeviation);
+        int dnfCount = Parser.getDnfCount();
+        double negativeTwoZScoreValue = sessionMean - (2 * standardDeviation);
+        double positiveTwoZScoreValue = sessionMean + (2 * standardDeviation);
+        double[] confidentMeanRange = { sessionMean - error, sessionMean + error };
+        double[] confidentSolveRange = { sessionMean - 2 * standardDeviation, sessionMean + 2 * standardDeviation };
+        double percentOutliers = ((double) outliers / (double) solves.length) * 100;
 
-        // String formatted statistics
         String meanStr = String.format("Session Mean: %.3fs\n", sessionMean);
         String medianStr = String.format("Session Median: %.3fs\n", sessionMedian);
         String pbStr = String.format("Best solve: %.3fs\n", sortedSessionData[0]);
@@ -61,19 +57,35 @@ public class Main {
         String skewnessStr = String.format("Skewness coefficient: %.3f\n", skewnessCoefficient);
         String outlierStr = String.format("Outliers: %d (%.3f%%)\n", outliers, percentOutliers);
         String dnfStr = String.format("DNFs: %d\n", dnfCount);
-        String[] stats = {meanStr, medianStr, pbStr, sdStr, top5TimeStr, top95TimeStr, meanAo5Str, meanAo100Str, confIntStrMean, confIntStrSolve, skewnessStr, outlierStr, dnfStr};
-
-        String report = meanStr + medianStr + pbStr + sdStr + top5TimeStr + top95TimeStr + meanAo5Str + meanAo100Str + confIntStrMean + confIntStrSolve + skewnessStr + outlierStr + dnfStr;
+        String[] stats = {meanStr, medianStr, pbStr, sdStr, top5TimeStr, top95TimeStr, meanAo5Str,
+                meanAo100Str, confIntStrMean, confIntStrSolve, skewnessStr, outlierStr, dnfStr};
+        String report = meanStr + medianStr + pbStr + sdStr + top5TimeStr + top95TimeStr + meanAo5Str
+                + meanAo100Str + confIntStrMean + confIntStrSolve + skewnessStr + outlierStr + dnfStr;
         System.out.println(report);
 
-        GUIBuilder gui = new GUIBuilder(solves, averages, averagesOf100, sessionMean, report, stats, dnfCount);
-        SwingUtilities.invokeLater(gui::buildGUI);
+        return new SessionData(solves, averages, averagesOf100, sessionMean, report, stats, dnfCount);
+    }
+
+    /** Always shows the chooser (no data.txt shortcut) and persists the new path. Returns null if cancelled. */
+    public static String selectNewFile() throws IOException {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Select your session.csv file");
+        chooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
+        chooser.setApproveButtonText("Load Session");
+        int result = chooser.showOpenDialog(null);
+        if (result != JFileChooser.APPROVE_OPTION) {
+            return null;
+        }
+
+        String selectedPath = chooser.getSelectedFile().getAbsolutePath();
+        try (java.io.PrintWriter writer = new java.io.PrintWriter("src/data.txt")) {
+            writer.println(selectedPath);
+        }
+        return selectedPath;
     }
 
     private static String findFile() throws IOException {
         File file = new File("src/data.txt");
-
-        // Console output for file verification
         if (file.createNewFile()) {
             System.out.println("data.txt not found, created");
         } else {
@@ -88,21 +100,10 @@ public class Main {
             return path;
         }
 
-        JFileChooser chooser = new JFileChooser();
-        chooser.setDialogTitle("Select your session.csv file");
-        chooser.setFileFilter(new FileNameExtensionFilter("CSV files", "csv"));
-        chooser.setApproveButtonText("Load Session");
-        int result = chooser.showOpenDialog(null);
-        if (result != JFileChooser.APPROVE_OPTION) {
+        String selected = selectNewFile();
+        if (selected == null) {
             throw new IOException("No file selected");
         }
-
-        String selectedPath = chooser.getSelectedFile().getAbsolutePath();
-
-        try (java.io.PrintWriter writer = new java.io.PrintWriter(file)) {
-            writer.println(selectedPath);
-        }
-
-        return selectedPath;
+        return selected;
     }
 }
