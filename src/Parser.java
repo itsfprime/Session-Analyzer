@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Parser {
-    private static int dnfCount = 0;
+    public record ParseResult(double[] solves, int dnfCount) {}
 
-    public static double[] parseSolves(String filepath) throws FileNotFoundException {
+    public static ParseResult parseSolves(String filepath) throws FileNotFoundException {
         Scanner fileReader = new Scanner(new File(filepath));
         fileReader.useDelimiter("\\Z");
         String content = fileReader.next();
@@ -20,6 +20,7 @@ public class Parser {
 
         String[] entries = content.split("(?m)(?=^\\d+;)");
         List<Double> solves = new ArrayList<>();
+        int dnfCount = 0;
 
         for (String entry : entries) {
             int firstSemi = entry.indexOf(';');
@@ -28,7 +29,6 @@ public class Parser {
 
             if (timeStr.startsWith("DNF")) {
                 dnfCount++;
-                continue; // exclude from stats entirely
             } else if (timeStr.endsWith("+")) {
                 timeStr = timeStr.substring(0, timeStr.length() - 1);
                 solves.add(Double.parseDouble(timeStr) + 2);
@@ -37,8 +37,6 @@ public class Parser {
             }
         }
 
-        return solves.stream().mapToDouble(Double::doubleValue).toArray();
+        return new ParseResult(solves.stream().mapToDouble(Double::doubleValue).toArray(), dnfCount);
     }
-
-    public static int getDnfCount() { return dnfCount; }
 }

@@ -1,1 +1,1 @@
-C:\Users\pwcub\IdeaProjects\Session-Analyzer\src\session2.csv
+C:\Users\pwcub\IdeaProjects\SessionAnalyzer\src\session.csv

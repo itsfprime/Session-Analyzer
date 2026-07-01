@@ -23,26 +23,26 @@ public class Main {
         fileReader.useDelimiter("\\Z");
         fileReader.close();
 
-        double[] solves = Parser.parseSolves(filepath);
-        Sorter sorter = new Sorter(solves);
+        Parser.ParseResult solves = Parser.parseSolves(filepath);
+        Sorter sorter = new Sorter(solves.solves());
 
-        double sessionMean = Calculator.calculateMean(solves);
+        double sessionMean = Calculator.calculateMean(solves.solves());
         double[] sortedSessionData = sorter.getSorted();
         double sessionMedian = Calculator.calculateMedian(sortedSessionData);
-        double standardDeviation = Calculator.calculateStandardDeviation(solves);
-        double[] averages = Calculator.calculateAo5s(solves);
+        double standardDeviation = Calculator.calculateStandardDeviation(solves.solves());
+        double[] averages = Calculator.calculateAo5s(solves.solves());
         double meanOfAverages = Calculator.calculateMean(averages);
-        double[] averagesOf100 = Calculator.calculateRollingAverage(solves, 100);
+        double[] averagesOf100 = Calculator.calculateRollingAverage(solves.solves(), 100);
         double meanOfAo100 = Calculator.calculateMean(averagesOf100);
-        double error = Calculator.calculateMOE(standardDeviation, solves);
+        double error = Calculator.calculateMOE(standardDeviation, solves.solves());
         double skewnessCoefficient = Calculator.calculateSkewnessCoefficient(sessionMean, sessionMedian, standardDeviation);
-        int outliers = Calculator.countOutliers(solves, sessionMean, standardDeviation);
-        int dnfCount = Parser.getDnfCount();
+        int outliers = Calculator.countOutliers(solves.solves(), sessionMean, standardDeviation);
+        int dnfCount = solves.dnfCount();
         double negativeTwoZScoreValue = sessionMean - (2 * standardDeviation);
         double positiveTwoZScoreValue = sessionMean + (2 * standardDeviation);
         double[] confidentMeanRange = { sessionMean - error, sessionMean + error };
         double[] confidentSolveRange = { sessionMean - 2 * standardDeviation, sessionMean + 2 * standardDeviation };
-        double percentOutliers = ((double) outliers / (double) solves.length) * 100;
+        double percentOutliers = ((double) outliers / (double) solves.solves().length) * 100;
 
         String meanStr = String.format("Session Mean: %.3fs\n", sessionMean);
         String medianStr = String.format("Session Median: %.3fs\n", sessionMedian);
@@ -63,7 +63,7 @@ public class Main {
                 + meanAo100Str + confIntStrMean + confIntStrSolve + skewnessStr + outlierStr + dnfStr;
         System.out.println(report);
 
-        return new SessionData(solves, averages, averagesOf100, sessionMean, report, stats, dnfCount);
+        return new SessionData(solves.solves(), averages, averagesOf100, sessionMean, report, stats, dnfCount);
     }
 
     /** Always shows the chooser (no data.txt shortcut) and persists the new path. Returns null if cancelled. */
@@ -78,14 +78,17 @@ public class Main {
         }
 
         String selectedPath = chooser.getSelectedFile().getAbsolutePath();
-        try (java.io.PrintWriter writer = new java.io.PrintWriter("src/data.txt")) {
+        File dir = new File(System.getenv("APPDATA"), "SessionAnalyzer");
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(new File(dir, "data.txt"))) {
             writer.println(selectedPath);
         }
         return selectedPath;
     }
 
     private static String findFile() throws IOException {
-        File file = new File("src/data.txt");
+        File dir = new File(System.getenv("APPDATA"), "SessionAnalyzer");
+        File file = new File(dir, "data.txt");
+
         if (file.createNewFile()) {
             System.out.println("data.txt not found, created");
         } else {
