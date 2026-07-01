@@ -3,6 +3,7 @@ A simple Java application which statistically interprets speedcubing session dat
 
 # IMPORTANT:
 Java 22 or newer must be installed on your machine to run this program
+To install Java 22 please see <a href="https://docs.oracle.com/en/java/javase/22/install/installation-jdk-microsoft-windows-platforms.html#GUID-371F38CC-248F-49EC-BB9C-C37FC89E52A0">here</a>
 
 # Screenshots
 <img width="867" height="357" alt="image" src="https://github.com/user-attachments/assets/56294f95-4773-41cf-a4c1-63e454dc6205" />
