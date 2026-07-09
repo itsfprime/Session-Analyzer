@@ -2,7 +2,7 @@
 A simple Java application which statistically interprets speedcubing session data exported from CSTimer.net
 
 # IMPORTANT:
-Java 22 or newer must be installed on your machine to run this program <br>
+Java Development Kit Version 22 or newer must be installed on your machine to run this program <br>
 To install Java 22 please see <a href="https://docs.oracle.com/en/java/javase/22/install/installation-jdk-microsoft-windows-platforms.html#GUID-371F38CC-248F-49EC-BB9C-C37FC89E52A0">here</a>
 
 # Screenshots
