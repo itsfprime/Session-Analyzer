@@ -11,6 +11,8 @@ import org.jfree.data.xy.XYSeriesCollection;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class GUIBuilder {
     double[] solves;
@@ -18,7 +20,7 @@ public class GUIBuilder {
     double[] averagesOf100;
     double sessionMean;
     String report;
-    String[] stats;
+    LinkedHashMap<String, String> stats;
     int dnfCount;
     private final Dimension PANEL_SIZE = new Dimension(800, 400);
     private JFrame frame;
@@ -145,34 +147,20 @@ public class GUIBuilder {
         gbc.insets = new Insets(4, 12, 4, 12);
         gbc.anchor = GridBagConstraints.WEST;
 
-        String[][] statsReadout = {
-                {"Session Mean", stats[0]},
-                {"Session Median", stats[1]},
-                {"Best solve", stats[2]},
-                {"Standard Deviation", stats[3]},
-                {"5th Percentile Time", stats[4]},
-                {"95th Percentile Time", stats[5]},
-                {"Mean Ao5", stats[6]},
-                {"Mean Ao100", stats[7]},
-                {"95% Confidence Interval (Mean)", stats[8]},
-                {"95% Confidence Interval (Solve)", stats[9]},
-                {"Skewness coefficient", stats[10]},
-                {"Outliers",  stats[11]},
-                {"DNF's", stats[12]}
-        };
-
-        for (int i = 0; i < statsReadout.length; i++) {
-            gbc.gridx = 0; gbc.gridy = i;
-            JLabel key = new JLabel(statsReadout[i][0]);
+        int yCount = 0;
+        for (Map.Entry<String, String> entry : stats.entrySet()) {
+            gbc.gridx = 0; gbc.gridy = yCount;
+            JLabel key = new JLabel(entry.getKey());
             key.setForeground(Color.LIGHT_GRAY);
             key.setFont(new Font("Monospaced", Font.ITALIC, 13));
             panel.add(key, gbc);
 
             gbc.gridx = 1;
-            JLabel val = new JLabel(statsReadout[i][1]);
-            val.setForeground(i == 2 ? new Color(255, 255, 0) : Color.WHITE); // index 2 = PB solve
+            JLabel val = new JLabel(entry.getValue());
+            val.setForeground(entry.getKey().equals("Best Solve") ? new Color(255, 255, 0) : Color.WHITE);
             val.setFont(new Font("Monospaced", Font.BOLD, 13));
             panel.add(val, gbc);
+            yCount++;
         }
 
         return panel;
