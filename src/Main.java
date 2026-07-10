@@ -18,11 +18,6 @@ public class Main {
     }
 
     public static SessionData computeStats(String filepath) throws IOException {
-        File file = new File(filepath);
-        Scanner fileReader = new Scanner(file);
-        fileReader.useDelimiter("\\Z");
-        fileReader.close();
-
         Parser.ParseResult solves = Parser.parseSolves(filepath);
         Sorter sorter = new Sorter(solves.solves());
 
@@ -44,24 +39,23 @@ public class Main {
         double[] confidentSolveRange = { sessionMean - 2 * standardDeviation, sessionMean + 2 * standardDeviation };
         double percentOutliers = ((double) outliers / (double) solves.solves().length) * 100;
 
-        String meanStr = String.format("Session Mean: %.3fs\n", sessionMean);
-        String medianStr = String.format("Session Median: %.3fs\n", sessionMedian);
-        String pbStr = String.format("Best solve: %.3fs\n", sortedSessionData[0]);
-        String sdStr = String.format("Standard Deviation: %.3fs\n", standardDeviation);
-        String top5TimeStr = String.format("5th Percentile Time: %.3fs\n", negativeTwoZScoreValue);
-        String top95TimeStr = String.format("95th Percentile Time: %.3fs\n", positiveTwoZScoreValue);
-        String meanAo5Str = String.format("Mean Ao5: %.3fs\n", meanOfAverages);
-        String meanAo100Str = String.format("Mean Ao100: %.3fs\n", meanOfAo100);
-        String confIntStrMean = String.format("95%% Confidence Interval (Mean): %.3fs - %.3fs\n", confidentMeanRange[0], confidentMeanRange[1]);
-        String confIntStrSolve = String.format("95%% Confidence Interval (Solve): %.3fs - %.3fs\n", confidentSolveRange[0], confidentSolveRange[1]);
-        String skewnessStr = String.format("Skewness coefficient: %.3f\n", skewnessCoefficient);
-        String outlierStr = String.format("Outliers: %d (%.3f%%)\n", outliers, percentOutliers);
-        String dnfStr = String.format("DNFs: %d\n", dnfCount);
+        String meanStr = String.format("%.3fs\n", sessionMean);
+        String medianStr = String.format("%.3fs\n", sessionMedian);
+        String pbStr = String.format("%.3fs\n", sortedSessionData[0]);
+        String sdStr = String.format("%.3fs\n", standardDeviation);
+        String top5TimeStr = String.format("%.3fs\n", negativeTwoZScoreValue);
+        String top95TimeStr = String.format("%.3fs\n", positiveTwoZScoreValue);
+        String meanAo5Str = String.format("%.3fs\n", meanOfAverages);
+        String meanAo100Str = String.format("%.3fs\n", meanOfAo100);
+        String confIntStrMean = String.format("%.3fs - %.3fs\n", confidentMeanRange[0], confidentMeanRange[1]);
+        String confIntStrSolve = String.format("%.3fs - %.3fs\n", confidentSolveRange[0], confidentSolveRange[1]);
+        String skewnessStr = String.format("%.3f\n", skewnessCoefficient);
+        String outlierStr = String.format("%d (%.3f%%)\n", outliers, percentOutliers);
+        String dnfStr = String.format("%d\n", dnfCount);
         String[] stats = {meanStr, medianStr, pbStr, sdStr, top5TimeStr, top95TimeStr, meanAo5Str,
                 meanAo100Str, confIntStrMean, confIntStrSolve, skewnessStr, outlierStr, dnfStr};
         String report = meanStr + medianStr + pbStr + sdStr + top5TimeStr + top95TimeStr + meanAo5Str
                 + meanAo100Str + confIntStrMean + confIntStrSolve + skewnessStr + outlierStr + dnfStr;
-        System.out.println(report);
 
         return new SessionData(solves.solves(), averages, averagesOf100, sessionMean, report, stats, dnfCount);
     }
