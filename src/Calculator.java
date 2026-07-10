@@ -1,4 +1,6 @@
+import javax.swing.*;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 public class Calculator {
     /**
@@ -14,8 +16,9 @@ public class Calculator {
 
     public static int countOutliers(double[] solves, double sessionMean, double standardDeviation){
         int outliers = 0;
-        for(int i = 0; i < solves.length; i++){
-            if(solves[i] > sessionMean + (2 * standardDeviation) || solves[i] < sessionMean - (2 * standardDeviation)) outliers++;
+        for (double solve : solves) {
+            if (solve > sessionMean + (2 * standardDeviation) || solve < sessionMean - (2 * standardDeviation))
+                outliers++;
         }
         return outliers;
     }
@@ -42,14 +45,23 @@ public class Calculator {
     }
 
     public static double[] calculateRollingAverage(double[] solves, int window) {
-        double[] avgs = new double[solves.length - (window - 1)];
-        for (int i = window - 1; i < solves.length; i++) {
-            double[] w = Arrays.copyOfRange(solves, i - (window - 1), i + 1);
-            double min = Arrays.stream(w).min().getAsDouble();
-            double max = Arrays.stream(w).max().getAsDouble();
-            avgs[i - (window - 1)] = (Arrays.stream(w).sum() - min - max) / (window - 2);
+        try{
+            double[] avgs = new double[solves.length - (window - 1)];
+            for (int i = window - 1; i < solves.length; i++) {
+                double[] w = Arrays.copyOfRange(solves, i - (window - 1), i + 1);
+                double min = Arrays.stream(w).min().getAsDouble();
+                double max = Arrays.stream(w).max().getAsDouble();
+                avgs[i - (window - 1)] = (Arrays.stream(w).sum() - min - max) / (window - 2);
+            }
+            return avgs;
         }
-        return avgs;
+        catch (NegativeArraySizeException e){
+            errorDialog("Session should have greater than 100 solves...");
+        }
+        catch (NoSuchElementException e){
+            errorDialog("Could not retrieve min/max...");
+        }
+        return new double[100];
     }
 
     public static double calculateStandardDeviation(double[] array) {
@@ -78,5 +90,10 @@ public class Calculator {
             sum += d;
         }
         return sum / solves.length;
+    }
+
+    private static void errorDialog(String err){
+        JFrame errorFrame = new JFrame();
+        JOptionPane.showMessageDialog(errorFrame, err);
     }
 }
